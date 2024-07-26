@@ -97,6 +97,70 @@ INCLUDEPATH += $$PWD/../3rd_party/libavoid/
 DEPENDPATH += $$PWD/../3rd_party/libavoid
 #
 
+#
+# Подключаем библиотеку TextExtraction
+#
+LIBS += -L$$LIBSDIR/ -lTextExtraction
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/TextExtraction
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/TextExtraction
+#
+
+#
+# Подключаем библиотеку PDFWriter
+#
+LIBS += -L$$LIBSDIR/ -lPDFWriter
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/PDFWriter
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/PDFWriter
+#
+
+#
+# Подключаем библиотеку FreeType
+#
+LIBS += -L$$PWD/../3rd_party/pdf-text-extraction/PDFHummus/FreeType/ -lFreeType
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/FreeType/include
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/FreeType/include
+#
+
+#
+# Подключаем библиотеку LibAesgm
+#
+LIBS += -L$$LIBSDIR/ -lLibAesgm
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibAesgm
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibAesgm
+#
+
+#
+# Подключаем библиотеку LibJpeg
+#
+LIBS += -L$$LIBSDIR/ -lLibJpeg
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibJpeg
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibJpeg
+#
+
+#
+# Подключаем библиотеку LibPng
+#
+LIBS += -L$$LIBSDIR/ -lLibPng
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibPng
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibPng
+#
+
+#
+# Подключаем библиотеку LibTiff
+#
+LIBS += -L$$LIBSDIR/ -lLibTiff
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibTiff
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/LibTiff
+#
+
+#
+# Подключаем библиотеку Zlib
+#
+LIBS += -L$$LIBSDIR/ -lZlib
+INCLUDEPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/Zlib
+DEPENDPATH += $$PWD/../3rd_party/pdf-text-extraction/PDFHummus/Zlib
+#
+
 SOURCES += \
     business_layer/chronometry/chronometer.cpp \
     business_layer/document/audioplay/text/audioplay_text_corrector.cpp \

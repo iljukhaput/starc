@@ -9,6 +9,8 @@
 #include <QFileInfo>
 #include <QSet>
 
+#include <TextExtraction.h>
+
 namespace BusinessLayer {
 
 namespace {
@@ -60,7 +62,11 @@ QVector<AbstractScreenplayImporter::Screenplay> ScreenplayFountainImporter::impo
     //
     // Импортируем
     //
-    auto screenplay = screenplayText(fountainFile.readAll(), _options.keepSceneNumbers);
+    TextExtraction textExtractor = TextExtraction();
+    textExtractor.ExtractText(_options.filePath.toStdString());
+    const auto text = QString::fromStdString(textExtractor.GetResultsAsText(0, TextComposer::eSpacingNone));
+//    auto screenplay = screenplayText(fountainFile.readAll(), _options.keepSceneNumbers);
+    auto screenplay = screenplayText(text, _options.keepSceneNumbers);
     if (screenplay.name.isEmpty()) {
         screenplay.name = QFileInfo(_options.filePath).completeBaseName();
     }

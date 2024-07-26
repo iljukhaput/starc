@@ -301,7 +301,8 @@ void ImportDialog::updateTranslations()
     //
     // Бинарные форматы
     //
-    if (fileIs(ExtensionHelper::msOfficeOpenXml()) || fileIs(ExtensionHelper::openDocumentXml())) {
+    if (fileIs(ExtensionHelper::msOfficeOpenXml()) || fileIs(ExtensionHelper::openDocumentXml())
+        || fileIs(ExtensionHelper::pdf())) {
         d->setImportDocumentTypes({ screenplay });
     }
     //

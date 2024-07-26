@@ -231,6 +231,8 @@ void ImportManager::Implementation::importScreenplay(
         } else if (importFilePath.endsWith(ExtensionHelper::fountain())
                    || importFilePath.endsWith(ExtensionHelper::plainText())) {
             importer.reset(new BusinessLayer::ScreenplayFountainImporter);
+        } else if (importFilePath.endsWith(ExtensionHelper::pdf())) {
+            importer.reset(new BusinessLayer::ScreenplayFountainImporter);
         }
     }
 
