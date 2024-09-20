@@ -171,6 +171,11 @@ public:
      */
     BusinessLayer::ProjectsModelProjectItem* currentProject() const;
 
+    /**
+     * @brief Восстановить данные в соответствии с БД
+     */
+    void resetSavedData();
+
 signals:
     /**
      * @brief Запрос на отображение меню

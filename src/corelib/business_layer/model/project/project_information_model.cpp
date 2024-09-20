@@ -27,6 +27,10 @@ public:
     QString name;
     QString logline;
     Domain::DocumentImage cover;
+    struct {
+        Domain::DocumentImage cover = {};
+        bool isChanged = false;
+    } buffer;
 
     StructureModel* structureModel = nullptr;
 
@@ -109,10 +113,17 @@ void ProjectInformationModel::setCover(const QPixmap& _cover)
     }
 
     //
-    // Если ранее обложка была задана, то удалим её
+    // Сохраняем старую обложку в буфер
+    //
+    if (d->buffer.isChanged == false) {
+        d->buffer.cover = d->cover;
+        d->buffer.isChanged = true;
+    }
+
+    //
+    // Если ранее обложка была задана, то удалим её из памяти
     //
     if (!d->cover.uuid.isNull()) {
-        imageWrapper()->remove(d->cover.uuid);
         d->cover = {};
     }
 
@@ -138,6 +149,28 @@ void ProjectInformationModel::setCover(const QUuid& _uuid, const QPixmap& _cover
         d->cover.uuid = _uuid;
     }
     emit coverChanged(d->cover.image);
+}
+
+void ProjectInformationModel::resetCoverFromBuffer()
+{
+    if (d->buffer.isChanged) {
+        if (!d->buffer.cover.image.isNull()) {
+            setCover(d->buffer.cover.uuid, d->buffer.cover.image);
+        } else {
+            setCover({});
+        }
+        d->buffer.isChanged = false;
+        d->buffer.cover = {};
+    }
+}
+
+void ProjectInformationModel::clearCoverBuffer()
+{
+    if (d->buffer.isChanged && !d->buffer.cover.image.isNull()) {
+        imageWrapper()->remove(d->buffer.cover.uuid);
+    }
+    d->buffer.isChanged = false;
+    d->buffer.cover = {};
 }
 
 StructureModel* ProjectInformationModel::structureModel() const

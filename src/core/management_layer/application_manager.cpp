@@ -1288,6 +1288,7 @@ void ApplicationManager::Implementation::saveChanges()
     //
     DatabaseLayer::Database::transaction();
     projectsManager->saveChanges();
+    projectsManager->saveProjects();
     projectManager->saveChanges();
     DatabaseLayer::Database::commit();
 
@@ -1344,6 +1345,10 @@ void ApplicationManager::Implementation::saveChanges()
     // Если изменения сохранились без ошибок, то изменим статус окна на сохранение изменений
     //
     markChangesSaved(true);
+    //
+    // ... и очистим буфер обложки проекта
+    //
+    projectManager->clearCoverBuffer();
 
     //
     // И, если необходимо создадим резервную копию закрываемого файла
@@ -1417,7 +1422,12 @@ void ApplicationManager::Implementation::saveIfNeeded(std::function<void()> _cal
             // Пользователь не хочет сохранять изменения
             //
             if (_buttonInfo.id == kNoButtonId) {
+                projectsManager->resetSavedData();
+                projectManager->resetCoverFromBuffer();
                 markChangesSaved(true);
+                QTimer::singleShot(
+                    1000, q, [this] { QApplication::postEvent(q, new DesignSystemChangeEvent); });
+
             }
             //
             // ... пользователь хочет сохранить изменения перед следующим действием

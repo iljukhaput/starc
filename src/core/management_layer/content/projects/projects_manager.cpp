@@ -1453,4 +1453,20 @@ BusinessLayer::ProjectsModelProjectItem* ProjectsManager::currentProject() const
     return d->currentProject;
 }
 
+void ProjectsManager::resetSavedData()
+{
+    const auto projectsData = settingsValue(DataStorageLayer::kApplicationProjectsKey);
+    const auto projectsJson
+        = QJsonDocument::fromJson(QByteArray::fromHex(projectsData.toByteArray()));
+
+    for (const auto& itemJsonValue : projectsJson.array()) {
+        const auto itemJson = itemJsonValue.toObject();
+        if (currentProject()->path() == itemJson["path"].toString()) {
+            setCurrentProjectName(itemJson["name"].toString());
+            setCurrentProjectLogline(itemJson["logline"].toString());
+            return;
+        }
+    }
+}
+
 } // namespace ManagementLayer

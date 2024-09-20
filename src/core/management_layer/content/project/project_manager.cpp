@@ -4232,6 +4232,22 @@ void ProjectManager::setGeneratedImage(const QPixmap& _image)
     }
 }
 
+void ProjectManager::resetCoverFromBuffer()
+{
+    auto projectInformationModel = qobject_cast<BusinessLayer::ProjectInformationModel*>(
+        d->modelsFacade.modelFor(DataStorageLayer::StorageFacade::documentStorage()->document(
+            Domain::DocumentObjectType::Project)));
+    projectInformationModel->resetCoverFromBuffer();
+}
+
+void ProjectManager::clearCoverBuffer()
+{
+    auto projectInformationModel = qobject_cast<BusinessLayer::ProjectInformationModel*>(
+        d->modelsFacade.modelFor(DataStorageLayer::StorageFacade::documentStorage()->document(
+            Domain::DocumentObjectType::Project)));
+    projectInformationModel->clearCoverBuffer();
+}
+
 bool ProjectManager::event(QEvent* _event)
 {
     switch (static_cast<int>(_event->type())) {
