@@ -1,0 +1,80 @@
+name: Build Starc for Windows
+
+env:
+  APP_VERSION: 0.7.6
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_windows_64:
+    name: Build Windows 64 version
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout sources for pull request event
+        uses: actions/checkout@master
+
+
+      - name: Checkout submodules for pull request event
+        shell: bash
+        run: |
+          git submodule update --init --recursive src/3rd_party/qbreakpad/ src/3rd_party/pdfhummus/ src/3rd_party/pdftextextraction/
+
+      - name: Add info about dev build to the env
+        shell: bash
+        run: |
+          echo "DEV_BUILD=$(git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count)" >> $GITHUB_ENV
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: 5.15.2
+          arch: win64_msvc2019_64
+          target: desktop
+          setup-python: false
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          choco install openssl --version=3.1.1
+
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Run QMake
+        shell: bash
+        run: |
+          cd src
+          qmake starc.pro CONFIG+=release DEFINES+="DEV_BUILD=$DEV_BUILD"
+
+      - name: Build
+        run: |
+          cd src
+          nmake
+
+      - name: Prepare installer folder
+        shell: bash
+        run: |
+          cd build/windows
+          ./make-exe_64.sh ${{env.APP_VERSION}}
+
+      - name: make MSIX package
+        shell: cmd
+        run: |
+          copy AppxManifest.xml build/windows/files_64
+          MakeAppx pack /d build/windows/files_64 /p build/windows/starc-package.msix
+
+      - name: Collect MSIX package
+        uses: actions/upload-artifact@v4
+        with:
+          name: msix-package
+          path: build/windows/starc-package.msix
+
+      - name: Get MSIX package
+        uses: actions/download-artifact@v4
+        with:
+          name: msix-package
+
