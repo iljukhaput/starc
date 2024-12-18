@@ -1,4 +1,4 @@
-name: Build Starc for Windows
+name: Package to MSIX
 
 env:
   APP_VERSION: 0.7.6
