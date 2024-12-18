@@ -61,11 +61,16 @@ jobs:
           cd build/windows
           ./make-exe_64.sh ${{env.APP_VERSION}}
 
+      - name: check manifest
+        shell: pwsh
+        run: Add-AppxPackage -Register build\windows\files_64\AppxManifest.xml
+
       - name: make MSIX package
         shell: cmd
         run: |
           copy AppxManifest.xml build/windows/files_64
-          MakeAppx pack /d build/windows/files_64 /p build/windows/starc-package.msix
+          cd build/windows/files_64
+          MakeAppx pack /d . /p starc-package.msix
 
       - name: Collect MSIX package
         uses: actions/upload-artifact@v4
