@@ -1,4 +1,4 @@
-name: build win64
+name: build and package
 
 env:
   APP_VERSION: 0.7.6
