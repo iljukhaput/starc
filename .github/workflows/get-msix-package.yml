@@ -7,11 +7,10 @@ jobs:
     name: Get files
     runs-on: windows-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
           name: build-files
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: artifacts
+          
       - name: Display structure of downloaded files
         run: ls -R
