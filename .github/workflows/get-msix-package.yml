@@ -1,6 +1,6 @@
 name: Get MSIX Package
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   get_files:
@@ -11,6 +11,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-files
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Display structure of downloaded files
         run: ls -R
