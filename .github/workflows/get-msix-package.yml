@@ -12,7 +12,7 @@ jobs:
         with:
           name: build-files
           run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PAT }}
           merge-multiple: true
           
       - name: Display structure of downloaded files
