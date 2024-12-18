@@ -126,11 +126,29 @@ jobs:
             build/windows/starc-setup-64.exe
             build/windows/starc-64.zip
 
+      - name: make MSIX package
+        shell: cmd
+        run: |
+          copy AppxManifest.xml build/windows/files_64
+          MakeAppx pack /d build/windows/files_64 /p build/windows/starc-package.msix
+
+      - name: Collect MSIX package
+        uses: actions/upload-artifact@v4
+        with:
+          name: msix-package
+          path: build/windows/starc-package.msix
+
       - name: Notify clients that stable release published
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
           curl -F "api_key=${{ secrets.STARC_API_KEY }}" -F "system=windows64" -F "version=${{env.APP_VERSION}}" https://starc.app/api/app/updates/notify
+
+      - name: Get MSIX package
+        uses: actions/download-artifact@v4
+        with:
+          name: msix-package
+
 
   build_windows_32:
     name: Build Windows 32 version
