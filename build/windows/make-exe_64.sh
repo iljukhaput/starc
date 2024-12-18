@@ -83,3 +83,9 @@ cp "$VCToolsRedistDir/x64/Microsoft.VC143.CRT/msvcp140.dll" $EXE_APP_DIR
 cp "$VCToolsRedistDir/x64/Microsoft.VC143.CRT/msvcp140_1.dll" $EXE_APP_DIR
 cp "$VCToolsRedistDir/x64/Microsoft.VC143.CRT/vcruntime140.dll" $EXE_APP_DIR
 cp "$VCToolsRedistDir/x64/Microsoft.VC143.CRT/vcruntime140_1.dll" $EXE_APP_DIR
+#
+# Copy files for MSIX packaging
+#
+ROOT_DIR="../../
+cp $ROOT_DIR/Images $EXE_APP_DIR
+cp $ROOT_DIR/AppxManifest.xml $EXE_APP_DIR
