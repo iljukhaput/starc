@@ -1,4 +1,4 @@
-name: Package to MSIX
+name: build win64
 
 env:
   APP_VERSION: 0.7.6
