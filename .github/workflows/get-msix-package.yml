@@ -1,0 +1,19 @@
+name: Get MSIX Package
+on:
+  workflow_dispatch:
+
+jobs:
+  get_files:
+    name: Get files
+    runs-on: windows-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GH_PAT }}
+          merge-multiple: true
+          
+      - name: Display structure of downloaded files
+        run: ls -R

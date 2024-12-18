@@ -1,4 +1,4 @@
-name: Package to MSIX
+name: build and package
 
 env:
   APP_VERSION: 0.7.6
@@ -60,15 +60,18 @@ jobs:
         run: |
           cd build/windows
           ./make-exe_64.sh ${{env.APP_VERSION}}
+      
+      - name: package to MSIX
+        run: MakeAppx pack /d build/windows/files_64 /p build/windows/files_64/starc-package.msix
 
-      - name: Collect build files
+      - name: upload package
         uses: actions/upload-artifact@v4
         with:
-          name: build-files
-          path: build/windows/files_64
+          name: package
+          path: build/windows/files_64/starc-package.msix
 
       - name: Get build files
         uses: actions/download-artifact@v4
         with:
-          name: build-files
+          name: package
 
