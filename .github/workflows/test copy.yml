@@ -19,7 +19,10 @@ jobs:
         shell: bash
         run: |
           cd build/windows
-          ./test-copy.sh 
+          mkdir files_64
+          mkdir files_64/Images
+          cp ../../Images/* files_64/Images
+          cp ../../AppxManifest.xml files_64
 
       - name: Display structure of downloaded files
         run: |
