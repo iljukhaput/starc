@@ -21,7 +21,7 @@ mkdir $EXE_APP_DIR
 #
 #cd $EXE_APP_DIR
 mkdir $EXE_APP_DIR/Images
-#ROOT_DIR="../../"
+ROOT_DIR="../../"
 cp $ROOT_DIR/Images/* $EXE_APP_DIR/Images
 cp $ROOT_DIR/AppxManifest.xml $EXE_APP_DIR
 
