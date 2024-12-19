@@ -11,9 +11,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-files
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: 12406176708
           github-token: ${{ secrets.GH_PAT }}
-          merge-multiple: true
+          repository: iljukhaput/starc
           
       - name: Display structure of downloaded files
         run: ls -R
