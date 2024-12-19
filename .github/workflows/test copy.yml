@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           cd build/windows
-          ./make-exe_64.sh ${{env.APP_VERSION}}
+          ./test-copy.sh ${{env.APP_VERSION}}
 
       - name: Display structure of downloaded files
         run: ls -R
