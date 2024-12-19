@@ -1,0 +1,25 @@
+name: test copy script
+
+env:
+  APP_VERSION: 0.7.6
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build_windows_64:
+    name: Build Windows 64 version
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@master
+
+      - name: Prepare installer folder
+        shell: bash
+        run: |
+          cd build/windows
+          ./make-exe_64.sh ${{env.APP_VERSION}}
+
+      - name: Display structure of downloaded files
+        run: ls -R
