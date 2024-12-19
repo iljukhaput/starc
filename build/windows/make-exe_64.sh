@@ -90,3 +90,4 @@ ROOT_DIR="../../"
 mkdir $EXE_APP_DIR/Images
 cp $ROOT_DIR/Images/* $EXE_APP_DIR/Images
 cp $ROOT_DIR/AppxManifest.xml $EXE_APP_DIR
+
