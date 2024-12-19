@@ -19,7 +19,7 @@ jobs:
         run: echo "PATH=${PATH};C:\Program Files (x86)\Windows Kits\10\bin\x64" >> $GITHUB_ENV
         
       - name: Packaging
-        run: makeappx pack /d . /p starc-package.msix
+        run: makeappx.exe pack /d . /p starc-package.msix
 
       - name: upload package
         uses: actions/upload-artifact@v4
