@@ -19,7 +19,9 @@ jobs:
         shell: bash
         run: |
           cd build/windows
-          ./test-copy.sh ${{env.APP_VERSION}}
+          ./test-copy.sh 
 
       - name: Display structure of downloaded files
-        run: ls -R
+        run: |
+          cd build/windows
+          ls -R
