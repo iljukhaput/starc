@@ -15,5 +15,17 @@ jobs:
           github-token: ${{ secrets.GH_PAT }}
           repository: iljukhaput/starc
           
-      - name: Display structure of downloaded files
-        run: ls -R
+      - name: Packaging
+        shell: cmd
+        run: MakeAppx pack /d . /p starc-package.msix
+
+      - name: upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: starc-package.msix
+
+      - name: Get build files
+        uses: actions/download-artifact@v4
+        with:
+          name: package
