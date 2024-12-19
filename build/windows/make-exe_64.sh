@@ -87,6 +87,7 @@ cp "$VCToolsRedistDir/x64/Microsoft.VC143.CRT/vcruntime140_1.dll" $EXE_APP_DIR
 # Copy files for MSIX packaging
 #
 ROOT_DIR="../../"
+ls -l $ROOT_DIR
 mkdir $EXE_APP_DIR/Images
 cp $ROOT_DIR/Images/StoreLogo.scale-400.png $EXE_APP_DIR/Images
 cp $ROOT_DIR/Images/Square150x150Logo.scale-400.png $EXE_APP_DIR/Images
