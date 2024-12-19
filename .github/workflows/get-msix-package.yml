@@ -16,7 +16,6 @@ jobs:
           repository: iljukhaput/starc
           
       - name: Packaging
-        shell: cmd
         run: MakeAppx pack /d . /p starc-package.msix
 
       - name: upload package
