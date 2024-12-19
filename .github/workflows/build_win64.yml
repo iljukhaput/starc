@@ -60,6 +60,8 @@ jobs:
         run: |
           cd build/windows
           ./make-exe_64.sh ${{env.APP_VERSION}}
+          mkdir ./files_64/Images
+          cp ../../Images/* ./files_64/Images
 
       - name: Collect build files
         uses: actions/upload-artifact@v4
