@@ -88,6 +88,12 @@ cp "$VCToolsRedistDir/x64/Microsoft.VC143.CRT/vcruntime140_1.dll" $EXE_APP_DIR
 #
 ROOT_DIR="../../"
 mkdir $EXE_APP_DIR/Images
-cp $ROOT_DIR/Images/* $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/StoreLogo.scale-400.png $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/Square150x150Logo.scale-400.png $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/Square44x44Logo.scale-400.png $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/Wide310x150Logo.scale-400.png $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/SplashScreen.scale-400.png $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/SmallTile.scale-400.png $EXE_APP_DIR/Images
+cp $ROOT_DIR/Images/LargeTile.scale-400.png $EXE_APP_DIR/Images
 cp $ROOT_DIR/AppxManifest.xml $EXE_APP_DIR
 
