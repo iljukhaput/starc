@@ -26,16 +26,13 @@ jobs:
       - name: Cope images
         run: |
           mkdir -p Images
-          ROOT_DIR="../../"
-          EXE_APP_DIR="."
-          cp $ROOT_DIR/Images/StoreLogo.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/Images/Square150x150Logo.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/Images/Square44x44Logo.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/Images/Wide310x150Logo.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/Images/SplashScreen.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/Images/SmallTile.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/Images/LargeTile.scale-400.png $EXE_APP_DIR/Images
-          cp $ROOT_DIR/AppxManifest.xml $EXE_APP_DIR
+          cp $./../Images/StoreLogo.scale-400.png Images
+          cp ../../Images/Square150x150Logo.scale-400.png Images
+          cp ../../Images/Square44x44Logo.scale-400.png Images
+          cp ../../Images/Wide310x150Logo.scale-400.png Images
+          cp ../../Images/SplashScreen.scale-400.png Images
+          cp ../../Images/SmallTile.scale-400.png Images
+          cp ../../Images/LargeTile.scale-400.png Images
           
       - name: Display structure of downloaded files
         run: |
