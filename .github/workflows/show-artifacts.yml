@@ -14,6 +14,11 @@ jobs:
           run-id: 12406176708
           github-token: ${{ secrets.GH_PAT }}
           repository: iljukhaput/starc
+
+      - name: move artifacts
+        run: |
+          mkdir artifacts
+          mv ./!(artifacts) ./artifacts
           
       - name: Display structure of downloaded files
         run: |
