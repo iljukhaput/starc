@@ -22,19 +22,6 @@ jobs:
         
       #- name: Packaging
       #  run: makeappx.exe pack /d . /p starc-package.msix
-
-      - name: Cope images
-        run: |
-          mkdir to_package
-          cp ./* ./to_package
-          #mkdir -p Images
-          #cp $./../Images/StoreLogo.scale-400.png Images
-          #cp ../../Images/Square150x150Logo.scale-400.png Images
-          #cp ../../Images/Square44x44Logo.scale-400.png Images
-          #cp ../../Images/Wide310x150Logo.scale-400.png Images
-          #cp ../../Images/SplashScreen.scale-400.png Images
-          #cp ../../Images/SmallTile.scale-400.png Images
-          #cp ../../Images/LargeTile.scale-400.png Images
           
       - name: Display structure of downloaded files
         run: |
