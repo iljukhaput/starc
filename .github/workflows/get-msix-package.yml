@@ -11,7 +11,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-files
-          run-id: 12406176708
+          run-id: 12413079755
           github-token: ${{ secrets.GH_PAT }}
           repository: iljukhaput/starc
           
