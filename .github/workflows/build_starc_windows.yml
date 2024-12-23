@@ -27,6 +27,16 @@ jobs:
         run: |
           echo "DEV_BUILD=$(git rev-list `git rev-list --tags --no-walk --max-count=1`..HEAD --count)" >> $GITHUB_ENV
 
+      - name: Update manifest
+        shell: pwsh
+        env:
+          APPXMANIFEST_PATH: build\windows\msix\AppxManifest.xml
+          BUILD_VERSION: $env:APPXMANIFEST_PATH + "." + $env:DEV_BUILD
+        run: |
+          $xml = [xml](Get-Content $env:BUILD_VERSION)
+          $xml.Package.Identity.Version = $env:APP_VERSION
+          $xml.save($env:APPXMANIFEST_PATH)
+          
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
@@ -61,16 +71,6 @@ jobs:
         run: |
           cd build/windows
           ./make-exe_64.sh ${{env.APP_VERSION}}
-
-      - name: Update manifest
-        shell: pwsh
-        env:
-          APPXMANIFEST_PATH: build\windows\msix\AppxManifest.xml
-          BUILD_VERSION: $env:APPXMANIFEST_PATH + "." + $env:DEV_BUILD
-        run: |
-          $xml = [xml](Get-Content $env:BUILD_VERSION)
-          $xml.Package.Identity.Version = $env:APP_VERSION
-          $xml.save($env:APPXMANIFEST_PATH)
 
       - name: Build MSIX package
         run: |
