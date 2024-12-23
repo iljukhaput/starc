@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap rescap">
-  <Identity Name="StoryApps.Starc" Publisher="CN=putil" Version="0.7.6" />
+  <Identity Name="StoryApps.Starc" Publisher="CN=putil" Version="0.1.1.5" />
   <Properties>
     <DisplayName>Starc</DisplayName>
     <PublisherDisplayName>putil</PublisherDisplayName>
-    <Logo>..\msix\visual-elements\StoreLogo.png</Logo>
+    <Logo>images\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
@@ -14,9 +14,9 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="starcapp.exe" EntryPoint="Windows.FullTrustApplication">
-      <uap:VisualElements DisplayName="Starc" Description="Starc" BackgroundColor="transparent" Square150x150Logo="..\msix\visual-elements\Square150x150Logo.png" Square44x44Logo="..\msix\visual-elements\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="..\msix\visual-elements\Wide310x150Logo.png" Square71x71Logo="..\msix\visual-elements\SmallTile.png" Square310x310Logo="..\msix\visual-elements\LargeTile.png" />
-        <uap:SplashScreen Image="..\msix\visual-elements\SplashScreen.png" />
+      <uap:VisualElements DisplayName="Starc" Description="Starc" BackgroundColor="transparent" Square150x150Logo="images\Square150x150Logo.png" Square44x44Logo="images\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="images\Wide310x150Logo.png" Square71x71Logo="images\SmallTile.png" Square310x310Logo="images\LargeTile.png" />
+        <uap:SplashScreen Image="images\SplashScreen.png" />
       </uap:VisualElements>
     </Application>
   </Applications>
