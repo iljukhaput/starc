@@ -33,8 +33,8 @@ jobs:
           APPXMANIFEST_PATH: build\windows\msix\AppxManifest.xml
           BUILD_VERSION: $env:APPXMANIFEST_PATH + "." + $env:DEV_BUILD
         run: |
-          $xml = [xml](Get-Content $env:BUILD_VERSION)
-          $xml.Package.Identity.Version = $env:APP_VERSION
+          $xml = [xml](Get-Content $env:APPXMANIFEST_PATH)
+          $xml.Package.Identity.Version = $env:BUILD_VERSION
           $xml.save($env:APPXMANIFEST_PATH)
           
       - name: Install Qt
