@@ -31,10 +31,11 @@ jobs:
         shell: pwsh
         env:
           APPXMANIFEST_PATH: build\windows\msix\AppxManifest.xml
-          BUILD_VERSION: $env:APPXMANIFEST_PATH + "." + $env:DEV_BUILD
         run: |
+          $buildVersion = "$($env:APP_VERSION).$($env:DEV_BUILD)"
+          Write-Host "Build version: $buildVersion"
           $xml = [xml](Get-Content $env:APPXMANIFEST_PATH)
-          $xml.Package.Identity.Version = $env:BUILD_VERSION
+          $xml.Package.Identity.Version = $buildVersion
           $xml.save($env:APPXMANIFEST_PATH)
           
       - name: Install Qt
