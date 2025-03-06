@@ -101,7 +101,7 @@ public:
     Q_SIGNAL void nodeAdded(const BusinessLayer::MindMapNode& _node);
     void updateNode(const MindMapNode& _node);
     Q_SIGNAL void nodeUpdated(const BusinessLayer::MindMapNode& _node);
-    void removeNode(const QUuid& _nodeUuid);
+    void removeNode(const QUuid _nodeUuid);
     Q_SIGNAL void nodeRemoved(const QUuid& _nodeUuid);
     QVector<MindMapNode> nodes() const;
 
@@ -110,14 +110,14 @@ public:
     void updateNodeConnection(const MindMapNodeConnection& _nodeConnection);
     Q_SIGNAL void nodeConnectionUpdated(
         const BusinessLayer::MindMapNodeConnection& _nodeConnection);
-    void removeNodeConnection(const QUuid& _fromNodeUuid, const QUuid& _toNodeUuid);
+    void removeNodeConnection(const QUuid _fromNodeUuid, const QUuid _toNodeUuid);
     Q_SIGNAL void nodeConnectionRemoved(const QUuid& _fromNodeUuid, const QUuid& _toNodeUuid);
 
     void addNodeGroup(const BusinessLayer::MindMapNodeGroup& _group);
     Q_SIGNAL void nodeGroupAdded(const BusinessLayer::MindMapNodeGroup& _group);
     void updateNodeGroup(const MindMapNodeGroup& _group);
     Q_SIGNAL void nodeGroupUpdated(const BusinessLayer::MindMapNodeGroup& _group);
-    void removeNodeGroup(const QUuid& _groupUuid);
+    void removeNodeGroup(const QUuid _groupUuid);
     Q_SIGNAL void nodeGroupRemoved(const QUuid& _groupUuid);
     QVector<MindMapNodeGroup> nodeGroups() const;
 
