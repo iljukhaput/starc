@@ -35,6 +35,11 @@ public:
     AbstractImageWrapper* image = nullptr;
 
     /**
+     * @brief Загрузчик сырых данный
+     */
+    AbstractRawDataWrapper* rawDataWrapper = nullptr;
+
+    /**
      * @brief Контроллер для формирования патчей изменений документа
      */
     DiffMatchPatchController dmpController;
@@ -147,6 +152,15 @@ void AbstractModel::setImageWrapper(AbstractImageWrapper* _image)
 
     if (d->image != nullptr) {
         initImageWrapper();
+    }
+}
+
+void AbstractModel::setRawDataWrapper(AbstractRawDataWrapper* _wrapper)
+{
+    d->rawDataWrapper = _wrapper;
+
+    if (d->rawDataWrapper != nullptr) {
+        initRawDataWrapper();
     }
 }
 
@@ -406,6 +420,10 @@ void AbstractModel::initImageWrapper()
 {
 }
 
+void AbstractModel::initRawDataWrapper()
+{
+}
+
 ChangeCursor AbstractModel::applyPatch(const QByteArray& _patch)
 {
     const auto newContent = d->dmpController.applyPatch(toXml(), _patch);
@@ -421,6 +439,12 @@ AbstractImageWrapper* AbstractModel::imageWrapper() const
 {
     Q_ASSERT(d->image);
     return d->image;
+}
+
+AbstractRawDataWrapper* AbstractModel::rawDataWrapper() const
+{
+    Q_ASSERT(d->rawDataWrapper);
+    return d->rawDataWrapper;
 }
 
 const DiffMatchPatchController& AbstractModel::dmpController() const
