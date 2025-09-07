@@ -61,6 +61,13 @@ jobs:
         with:
           arch: x64
 
+      - name: Build crashpad
+        shell: bash
+        run: |
+          cd build
+          chmod +x ./build_crashpad.sh
+          ./build_crashpad.sh
+
       - name: Run QMake
         shell: bash
         run: |
@@ -72,11 +79,61 @@ jobs:
           cd src
           nmake
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Rust
+        shell: bash
+        run: |
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install dependencies for node-dump-syms
+        shell: bash
+        run: |
+          npm install -g @mapbox/node-pre-gyp cargo-cp-artifact
+
+      - name: Install node-dump-syms
+        run: |
+          npm i -g node-dump-syms
+
+      - name: Upload debug symbols from _build folder
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-win"
+          version: ${{env.APP_VERSION}}
+          files: "*.{pdb,exe,dll}"
+          directory: "src/_build"
+          node-version: "22"
+          dumpSyms: true
+
+      - name: Upload debug symbols from _build/plugins folder
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-win"
+          version: ${{env.APP_VERSION}}
+          files: "*.{pdb,dll}"
+          directory: "src/_build/plugins"
+          node-version: "22"
+          dumpSyms: true
+
       - name: Prepare installer folder
         shell: bash
         run: |
           cd build/windows
           ./make-exe_qt5_64.sh ${{env.APP_VERSION}}
+
+      - name: Install makensis
+        run: choco install nsis
 
       - name: Make installer
         uses: joncloud/makensis-action@v3.4
@@ -159,6 +216,13 @@ jobs:
         with:
           arch: x86
 
+      - name: Build crashpad
+        shell: bash
+        run: |
+          cd build
+          chmod +x ./build_crashpad.sh
+          ./build_crashpad.sh
+
       - name: Run QMake
         shell: bash
         run: |
@@ -170,11 +234,61 @@ jobs:
           cd src
           nmake
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Rust
+        shell: bash
+        run: |
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install dependencies for node-dump-syms
+        shell: bash
+        run: |
+          npm install -g @mapbox/node-pre-gyp cargo-cp-artifact
+
+      - name: Install node-dump-syms
+        run: |
+          npm i -g node-dump-syms
+
+      - name: Upload debug symbols from _build folder
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-win"
+          version: ${{env.APP_VERSION}}
+          files: "*.{pdb,exe,dll}"
+          directory: "src/_build"
+          node-version: "22"
+          dumpSyms: true
+
+      - name: Upload debug symbols from _build/plugins folder
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-win"
+          version: ${{env.APP_VERSION}}
+          files: "*.{pdb,dll}"
+          directory: "src/_build/plugins"
+          node-version: "22"
+          dumpSyms: true
+
       - name: Prepare installer folder
         shell: bash
         run: |
           cd build/windows
           ./make-exe_qt5_32.sh ${{env.APP_VERSION}}
+
+      - name: Install makensis
+        run: choco install nsis
 
       - name: Make installer
         uses: joncloud/makensis-action@v3.4
@@ -259,6 +373,13 @@ jobs:
         with:
           arch: x64
 
+      - name: Build crashpad
+        shell: bash
+        run: |
+          cd build
+          chmod +x ./build_crashpad.sh
+          ./build_crashpad.sh
+
       - name: Run QMake
         shell: bash
         run: |
@@ -270,11 +391,61 @@ jobs:
           cd src
           jom -j4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Rust
+        shell: bash
+        run: |
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install dependencies for node-dump-syms
+        shell: bash
+        run: |
+          npm install -g @mapbox/node-pre-gyp cargo-cp-artifact
+
+      - name: Install node-dump-syms
+        run: |
+          npm i -g node-dump-syms
+
+      - name: Upload debug symbols from _build folder
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-win"
+          version: ${{env.APP_VERSION}}
+          files: "*.{pdb,exe,dll}"
+          directory: "src/_build"
+          node-version: "22"
+          dumpSyms: true
+
+      - name: Upload debug symbols from _build/plugins folder
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-win"
+          version: ${{env.APP_VERSION}}
+          files: "*.{pdb,dll}"
+          directory: "src/_build/plugins"
+          node-version: "22"
+          dumpSyms: true
+
       - name: Prepare installer folder
         shell: bash
         run: |
           cd build/windows
           ./make-exe_64.sh ${{env.APP_VERSION}}
+
+      - name: Install makensis
+        run: choco install nsis
 
       - name: Make installer
         uses: joncloud/makensis-action@v3.4

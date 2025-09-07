@@ -1742,6 +1742,9 @@ bool ApplicationManager::Implementation::openProject(const QString& _path)
     if (_path.isEmpty()) {
         return false;
     }
+//    *(volatile int *)0 = 0;
+    int* p = nullptr;
+    *p = 42; // segmentation fault
 
     if (projectsManager->project(_path) != nullptr && projectsManager->project(_path)->isLocal()
         && !QFileInfo::exists(_path)) {
