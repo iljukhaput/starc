@@ -40,45 +40,21 @@
 [submodule "src/core/management_layer/plugins/screenplay_cards"]
 	path = src/core/management_layer/plugins/screenplay_cards
 	url = git@github.com:story-apps/starc-screenplay-cards-plugin.git
-[submodule "src/core/management_layer/plugins/images_gallery"]
-	path = src/core/management_layer/plugins/images_gallery
-	url = git@github.com:story-apps/starc-images-gallery-plugin.git
-[submodule "src/core/management_layer/plugins/character_dialogues"]
-	path = src/core/management_layer/plugins/character_dialogues
-	url = git@github.com:story-apps/starc-character-dialogues-plugin.git
-[submodule "src/core/management_layer/plugins/worlds_map"]
-    path = src/core/management_layer/plugins/worlds_map
-    url = git@github.com:story-apps/starc-worlds-map-plugin.git
-[submodule "src/core/management_layer/plugins/world_information"]
-    path = src/core/management_layer/plugins/world_information
-    url = git@github.com:story-apps/starc-world-information-plugin.git
 [submodule "src/core/management_layer/plugins/novel_cards"]
 	path = src/core/management_layer/plugins/novel_cards
 	url = git@github.com:story-apps/starc-novel-cards-plugin.git 
-[submodule "src/core/management_layer/plugins/novel_statistics"]
-    path = src/core/management_layer/plugins/novel_statistics
-    url = git@github.com:story-apps/starc-novel-statistics-plugin.git
-[submodule "src/core/management_layer/plugins/screenplay_breakdown"]
-    path = src/core/management_layer/plugins/screenplay_breakdown
-    url = git@github.com:story-apps/starc-screenplay-breakdown-plugin.git 
 [submodule "src/core/management_layer/plugins/screenplay_breakdown_structure"]
     path = src/core/management_layer/plugins/screenplay_breakdown_structure
     url = git@github.com:story-apps/starc-screenplay-breakdown-structure-plugin.git
 [submodule "src/core/management_layer/plugins/mind_map"]
     path = src/core/management_layer/plugins/mind_map
     url = git@github.com:story-apps/starc-mind-map-plugin.git
-[submodule "src/core/management_layer/plugins/location_scenes"]
-    path = src/core/management_layer/plugins/location_scenes
-    url = git@github.com:story-apps/starc-location-scenes-plugin.git
 [submodule "src/core/management_layer/plugins/screenplay_timeline"]
     path = src/core/management_layer/plugins/screenplay_timeline
     url = git@github.com:story-apps/starc-screenplay-timeline-plugin.git
 [submodule "src/core/management_layer/plugins/novel_timeline"]
     path = src/core/management_layer/plugins/novel_timeline
     url = git@github.com:story-apps/starc-novel-timeline-plugin.git
-[submodule "src/core/management_layer/plugins/screenplay_series_statistics"]
-    path = src/core/management_layer/plugins/screenplay_series_statistics
-    url = git@github.com:story-apps/starc-screenplay-series-statistics-plugin.git
 [submodule "src/core/management_layer/plugins/presentation"]
 	path = src/core/management_layer/plugins/presentation
 	url = git@github.com:story-apps/starc-presentation-plugin.git

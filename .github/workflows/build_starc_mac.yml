@@ -49,6 +49,13 @@ jobs:
           version: 5.15.2
           target: desktop
 
+      - name: Build crashpad
+        shell: bash
+        run: |
+          cd build
+          chmod +x ./build_crashpad.sh
+          ./build_crashpad.sh
+
       - name: Run QMake
         shell: bash
         run: |
@@ -60,6 +67,21 @@ jobs:
         run: |
           cd src
           make -j4
+
+      - name: Upload debug symbols
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-mac"
+          version: "${{ env.APP_VERSION }}"
+          files: "**/*.dSYM"
+          directory: "src/_build"
+          node-version: "22"
+          dumpSyms: false
+        env:
+          DEBUG: true
 
       - name: Make dmg image
         shell: bash
@@ -130,6 +152,13 @@ jobs:
           target: desktop
           modules: 'qt5compat qtmultimedia qtspeech qtwebsockets'
 
+      - name: Build crashpad
+        shell: bash
+        run: |
+          cd build
+          chmod +x ./build_crashpad.sh
+          ./build_crashpad.sh
+
       - name: Run QMake
         shell: bash
         run: |
@@ -141,6 +170,19 @@ jobs:
         run: |
           cd src
           make -j4
+
+      - name: Upload debug symbols
+        uses: BugSplat-Git/symbol-upload@main
+        with:
+          username: "${{ secrets.BUGSPLAT_USER }}"
+          password: "${{ secrets.BUGSPLAT_PASSWORD }}"
+          database: "${{ secrets.BUGSPLAT_DATABASE }}"
+          application: "starcapp-mac"
+          version: "${{ env.APP_VERSION }}"
+          files: "**/*.dSYM"
+          directory: "src/_build"
+          node-version: "22"
+          dumpSyms: false
 
       - name: Make dmg image
         shell: bash
