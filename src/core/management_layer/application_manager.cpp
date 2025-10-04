@@ -1,5 +1,9 @@
 #include "application_manager.h"
 
+#include "client/crash_report_database.h"
+#include "client/crashpad_client.h"
+#include "crashpad_paths.h"
+
 #include "content/account/account_manager.h"
 #include "content/export/export_manager.h"
 #include "content/import/import_manager.h"
@@ -522,6 +526,7 @@ void ApplicationManager::Implementation::sendStartupStatistics()
     loader->loadAsync("https://demo.storyapps.dev/telemetry/");
 }
 
+#if 0
 void ApplicationManager::Implementation::sendCrashInfo()
 {
     const auto crashReportsFolderPath
@@ -613,6 +618,61 @@ void ApplicationManager::Implementation::sendCrashInfo()
         //
         dialog->hideDialog();
     });
+    connect(dialog, &Ui::CrashReportDialog::disappeared, dialog,
+            &Ui::CrashReportDialog::deleteLater);
+
+    //
+    // Отображаем диалог
+    //
+    dialog->showDialog();
+}
+#endif
+
+void ApplicationManager::Implementation::sendCrashInfo()
+{
+    //
+    // Открываем базу данных
+    //
+    CrashpadPaths crashpadPaths;
+    base::FilePath reportsDir(CrashpadPaths::getPlatformString(crashpadPaths.getReportsPath()));
+    std::unique_ptr<crashpad::CrashReportDatabase> database
+        = crashpad::CrashReportDatabase::Initialize(reportsDir);
+    if (database == nullptr) {
+        return;
+    }
+
+    //
+    // Проверяем, есть ли неотправленные отчеты
+    //
+    std::vector<crashpad::CrashReportDatabase::Report> pending_reports;
+    crashpad::CrashReportDatabase::OperationStatus status
+        = database->GetPendingReports(&pending_reports);
+    if (status != crashpad::CrashReportDatabase::kNoError || pending_reports.empty()) {
+        return;
+    }
+
+
+    //
+    // Если есть дампы для отправки, то предложим пользователю отправить отчёт об ошибке
+    //
+
+    auto dialog = new Ui::CrashReportDialog(applicationView);
+    dialog->setContactEmail(settingsValue(DataStorageLayer::kAccountEmailKey).toString());
+
+    //
+    // Настраиваем соединения диалога
+    //
+    connect(dialog, &Ui::CrashReportDialog::sendReportPressed, q,
+            [database = std::move(database), pending_reports, dialog] {
+                for (auto& report : pending_reports) {
+                    database->RequestUpload(report.uuid);
+                }
+
+                //
+                // Закрываем диалог
+                //
+                dialog->hideDialog();
+            });
     connect(dialog, &Ui::CrashReportDialog::disappeared, dialog,
             &Ui::CrashReportDialog::deleteLater);
 
@@ -1742,9 +1802,10 @@ bool ApplicationManager::Implementation::openProject(const QString& _path)
     if (_path.isEmpty()) {
         return false;
     }
-//    *(volatile int *)0 = 0;
+//============================
     int* p = nullptr;
     *p = 42; // segmentation fault
+//============================
 
     if (projectsManager->project(_path) != nullptr && projectsManager->project(_path)->isLocal()
         && !QFileInfo::exists(_path)) {

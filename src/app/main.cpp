@@ -2,98 +2,33 @@
 
 #include <interfaces/management_layer/i_application_manager.h>
 
-//#include <QBreakpadHandler.h>
+// #include <QBreakpadHandler.h>
+#include "client/crash_report_database.h"
+#include "client/crashpad_client.h"
+#include "client/settings.h"
+#include "crashpad_paths.h"
+
 #include <QDebug>
 #include <QDir>
 #include <QPluginLoader>
 #include <QStandardPaths>
 
 
-#include "client/crash_report_database.h"
-#include "client/crashpad_client.h"
-#include "client/settings.h"
-#include "crashpad_paths.h"
-
-#if defined(Q_OS_WIN)
-    #define NOMINMAX
-    #include <windows.h>
-    #include <filesystem>
-#endif
-
-#if defined(Q_OS_MAC)
-    #include <mach-o/dyld.h>
-#endif
-
-#if defined(Q_OS_LINUX)
-    #include <unistd.h>
-    #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#endif
-
-
-QString getExecutableDir() {
-#if defined(Q_OS_MAC)
-    unsigned int bufferSize = 512;
-    std::vector<char> buffer(bufferSize + 1);
-
-    if(_NSGetExecutablePath(&buffer[0], &bufferSize))
-    {
-        buffer.resize(bufferSize);
-        _NSGetExecutablePath(&buffer[0], &bufferSize);
-    }
-
-    char* lastForwardSlash = strrchr(&buffer[0], '/');
-    if (lastForwardSlash == NULL) return NULL;
-    *lastForwardSlash = 0;
-
-    return &buffer[0];
-#elif defined(Q_OS_WINDOWS)
-    HMODULE hModule = GetModuleHandleW(NULL);
-    WCHAR path[MAX_PATH];
-    DWORD retVal = GetModuleFileNameW(hModule, path, MAX_PATH);
-    if (retVal == 0) return NULL;
-
-    wchar_t *lastBackslash = wcsrchr(path, '\\');
-    if (lastBackslash == NULL) return NULL;
-    *lastBackslash = 0;
-
-    return QString::fromWCharArray(path);
-#elif defined(Q_OS_LINUX)
-    char pBuf[FILENAME_MAX];
-    int len = sizeof(pBuf);
-    int bytes = MIN(readlink("/proc/self/exe", pBuf, len), len - 1);
-    if (bytes >= 0) {
-        pBuf[bytes] = '\0';
-    }
-
-    char* lastForwardSlash = strrchr(&pBuf[0], '/');
-    if (lastForwardSlash == NULL) return NULL;
-    *lastForwardSlash = '\0';
-
-    return QString::fromStdString(pBuf);
-#else
-    #error getExecutableDir not implemented on this platform
-#endif
-}
-
 bool initializeCrashpad(QString dbName, QString appName, QString appVersion)
 {
-    // Get directory where the exe lives so we can pass a full path to handler, reportsDir and
-    // metricsDir
-    QString exeDir = getExecutableDir();
-
     // Helper class for cross-platform file systems
-    Paths crashpadPaths(exeDir);
+    CrashpadPaths crashpadPaths;
 
     // Ensure that crashpad_handler is shipped with your application
-    base::FilePath handler(Paths::getPlatformString(crashpadPaths.getHandlerPath()));
+    base::FilePath handler(CrashpadPaths::getPlatformString(crashpadPaths.getHandlerPath()));
 
     // Directory where reports will be saved. Important! Must be writable or crashpad_handler will
     // crash.
-    base::FilePath reportsDir(Paths::getPlatformString(crashpadPaths.getReportsPath()));
+    base::FilePath reportsDir(CrashpadPaths::getPlatformString(crashpadPaths.getReportsPath()));
 
     // Directory where metrics will be saved. Important! Must be writable or crashpad_handler will
     // crash.
-    base::FilePath metricsDir(Paths::getPlatformString(crashpadPaths.getMetricsPath()));
+    base::FilePath metricsDir(CrashpadPaths::getPlatformString(crashpadPaths.getMetricsPath()));
 
     // Configure url with your BugSplat database
     QString url = "https://" + dbName + ".bugsplat.com/post/bp/crash/crashpad.php";
@@ -124,18 +59,20 @@ bool initializeCrashpad(QString dbName, QString appName, QString appVersion)
     // Initialize crashpad database
     std::unique_ptr<crashpad::CrashReportDatabase> database
         = crashpad::CrashReportDatabase::Initialize(reportsDir);
-    if (database == NULL)
+    if (database == nullptr) {
         return false;
+    }
 
     // Enable automated crash uploads
     crashpad::Settings* settings = database->GetSettings();
-    if (settings == NULL)
+    if (settings == nullptr) {
         return false;
-    settings->SetUploadsEnabled(true);
+    }
+    settings->SetUploadsEnabled(false);
 
     // Attachments to be uploaded alongside the crash - default bundle size limit is 20MB
     std::vector<base::FilePath> attachments;
-    base::FilePath attachment(Paths::getPlatformString(crashpadPaths.getAttachmentPath()));
+    base::FilePath attachment(CrashpadPaths::getPlatformString(crashpadPaths.getAttachmentPath()));
 #if defined(Q_OS_WINDOWS) || defined(Q_OS_LINUX)
     // Crashpad hasn't implemented attachments on OS X yet
     attachments.push_back(attachment);
@@ -145,26 +82,6 @@ bool initializeCrashpad(QString dbName, QString appName, QString appVersion)
     crashpad::CrashpadClient* client = new crashpad::CrashpadClient();
     bool status = client->StartHandler(handler, reportsDir, metricsDir, url.toStdString(),
                                        annotations.toStdMap(), arguments, true, true, attachments);
-#ifdef _WIN32
-    // Register WER module after starting the handler
-    if (status) {
-        std::string werDllPath = exeDir.toStdString() + "\\crashpad_wer.dll";
-        qDebug() << "Looking for Crashpad WER DLL at: " + QString::fromStdString(werDllPath);
-
-        if (std::filesystem::exists(werDllPath)) {
-            qDebug() << "Crashpad WER DLL found, registering with Crashpad...";
-            std::wstring werDllPathW(werDllPath.begin(), werDllPath.end());
-            if (client->RegisterWerModule(werDllPathW)) {
-                qDebug() << "Successfully registered WER module: " + QString::fromStdString(werDllPath);
-                qDebug() << "WER callbacks are now active for enhanced crash detection!";
-            } else {
-                qDebug() << "Failed to register WER module: " + QString::fromStdString(werDllPath);
-            }
-        } else {
-            qDebug() << "Crashpad WER DLL not found - continuing without WER integration";
-        }
-    }
-#endif
     return status;
 }
 
