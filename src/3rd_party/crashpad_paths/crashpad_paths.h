@@ -1,13 +1,13 @@
 #pragma once
 
-#include <QApplication>
+#include <QString>
 
-class Paths
+class CrashpadPaths
 {
     QString m_exeDir;
 
     public:
-        Paths(QString exeDir);
+        CrashpadPaths();
         QString getAttachmentPath();
         QString getHandlerPath();
         QString getReportsPath();

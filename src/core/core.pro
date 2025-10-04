@@ -32,6 +32,60 @@ LIBSDIR = ../_build/libs
 INCLUDEPATH += ..
 
 #
+# Подключаем Crashpad
+#
+LIBS += -L$$LIBSDIR/ -lcrashpad_paths
+INCLUDEPATH += $$PWD/../3rd_party/crashpad_paths
+DEPENDPATH += $$PWD/../3rd_party/crashpad_paths
+
+CRASHPAD_DIR = $$PWD/../3rd_party/chromium/crashpad/crashpad
+
+INCLUDEPATH += $$CRASHPAD_DIR
+INCLUDEPATH += $$CRASHPAD_DIR/third_party/mini_chromium/mini_chromium
+CONFIG(debug, debug|release) {
+    INCLUDEPATH += $$CRASHPAD_DIR/out/debug/gen
+}
+CONFIG(release, debug|release) {
+    INCLUDEPATH += $$CRASHPAD_DIR/out/release/gen
+}
+
+win32 {
+    CONFIG(debug, debug|release) {
+        OBJDIR = $$CRASHPAD_DIR/out/debug/obj
+    }
+    CONFIG(release, debug|release) {
+        OBJDIR = $$CRASHPAD_DIR/out/release/obj
+    }
+
+    LIBS += -L$$OBJDIR/client -lcommon
+    LIBS += -L$$OBJDIR/client -lclient
+    LIBS += -L$$OBJDIR/util -lutil
+    LIBS += -L$$OBJDIR/third_party/mini_chromium/mini_chromium/base -lbase
+
+    LIBS += -lAdvapi32
+}
+
+linux {
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/client -lcommon
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/client -lclient
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/util -lutil
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/third_party/mini_chromium/mini_chromium/base -lbase
+}
+
+macx {
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/client -lcommon
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/client -lclient
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/util -lutil
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/third_party/mini_chromium/mini_chromium/base -lbase
+    LIBS += -L$$CRASHPAD_DIR/out/release/obj/util -lmig_output
+
+    LIBS += -L/usr/lib/ -lbsm
+    LIBS += -framework AppKit
+    LIBS += -framework Security
+}
+#
+
+#
 # Подключаем библиотеку corelib
 #
 LIBS += -L$$CORELIBDIR/ -lcorelib

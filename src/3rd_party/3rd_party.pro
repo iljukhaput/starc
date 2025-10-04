@@ -10,3 +10,4 @@ SUBDIRS = \
     qtxlsxwriter \
     pdfhummus \
     pdftextextraction \
+    crashpad_paths \
