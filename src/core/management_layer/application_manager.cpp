@@ -4,6 +4,14 @@
 #include "client/crashpad_client.h"
 #include "crashpad_paths.h"
 
+#include <QDebug>
+#include <QFile>
+#include <QTextStream>
+#include <QDateTime>
+#include <QDir>
+#include <QCoreApplication>
+#include <QSysInfo>
+
 #include "content/account/account_manager.h"
 #include "content/export/export_manager.h"
 #include "content/import/import_manager.h"
@@ -630,10 +638,68 @@ void ApplicationManager::Implementation::sendCrashInfo()
 
 void ApplicationManager::Implementation::sendCrashInfo()
 {
+    qDebug() << "=== sendCrashInfo() called ===";
+    
+    // Также записываем в файл для гарантии
+    QString debugFilePath = "crashpad_debug.txt";  // В папке проекта
+    qDebug() << "Debug file path:" << debugFilePath;
+    QFile debugFile(debugFilePath);
+    if (debugFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        QTextStream stream(&debugFile);
+        stream << QDateTime::currentDateTime().toString() << " - sendCrashInfo() called\n";
+        debugFile.close();
+        qDebug() << "Debug info written to file successfully";
+    } else {
+        qDebug() << "Failed to open debug file:" << debugFile.errorString();
+    }
+
+    CrashpadPaths crashpadPaths;
+
+    //
+    // Создаем файл attachment.txt с пользовательской информацией
+    //
+#if 0
+    QString attachmentPath = crashpadPaths.getAttachmentPath();
+    QFile attachmentFile(attachmentPath);
+    if (attachmentFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream stream(&attachmentFile);
+        stream << "=== CRASH REPORT INFORMATION ===\n\n";
+        
+        // Информация о пользователе
+        QString userEmail = settingsValue(DataStorageLayer::kAccountEmailKey).toString();
+        if (!userEmail.isEmpty()) {
+            stream << "User Email: " << userEmail << "\n";
+        }
+        
+        // Информация о приложении
+        stream << "Application: " << QCoreApplication::applicationName() << "\n";
+        stream << "Version: " << QCoreApplication::applicationVersion() << "\n";
+        stream << "Build Date: " << __DATE__ << " " << __TIME__ << "\n";
+        
+        // Информация о системе
+        stream << "OS: " << QSysInfo::prettyProductName() << "\n";
+        stream << "Architecture: " << QSysInfo::currentCpuArchitecture() << "\n";
+        stream << "Kernel Type: " << QSysInfo::kernelType() << "\n";
+        stream << "Kernel Version: " << QSysInfo::kernelVersion() << "\n";
+        
+        // Информация о Qt
+        stream << "Qt Version: " << QT_VERSION_STR << "\n";
+        stream << "Qt Runtime Version: " << qVersion() << "\n";
+        
+        // Время создания отчета
+        stream << "Report Time: " << QDateTime::currentDateTime().toString(Qt::ISODate) << "\n";
+        
+        stream << "\n=== END OF REPORT ===\n";
+        attachmentFile.close();
+        
+        qDebug() << "Attachment file created:" << attachmentPath;
+    } else {
+        qDebug() << "Failed to create attachment file:" << attachmentFile.errorString();
+    }
+#endif
     //
     // Открываем базу данных
     //
-    CrashpadPaths crashpadPaths;
     base::FilePath reportsDir(CrashpadPaths::getPlatformString(crashpadPaths.getReportsPath()));
     std::unique_ptr<crashpad::CrashReportDatabase> database
         = crashpad::CrashReportDatabase::Initialize(reportsDir);
@@ -647,7 +713,58 @@ void ApplicationManager::Implementation::sendCrashInfo()
     std::vector<crashpad::CrashReportDatabase::Report> pending_reports;
     crashpad::CrashReportDatabase::OperationStatus status
         = database->GetPendingReports(&pending_reports);
-    if (status != crashpad::CrashReportDatabase::kNoError || pending_reports.empty()) {
+    
+    // Отладочная информация
+    qDebug() << "Crashpad database status:" << status;
+    qDebug() << "Pending reports count:" << pending_reports.size();
+    qDebug() << "Reports directory:" << QString::fromStdWString(reportsDir.value());
+    
+    // Записываем в файл для отладки
+    if (debugFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        QTextStream stream(&debugFile);
+        stream << QDateTime::currentDateTime().toString() << " - Database status: " << status << "\n";
+        stream << QDateTime::currentDateTime().toString() << " - Pending reports count: " << pending_reports.size() << "\n";
+        stream << QDateTime::currentDateTime().toString() << " - Reports directory: " << QString::fromStdWString(reportsDir.value()) << "\n";
+        debugFile.close();
+    }
+    
+    // Проверяем также completed отчеты для диагностики
+    std::vector<crashpad::CrashReportDatabase::Report> completed_reports;
+    crashpad::CrashReportDatabase::OperationStatus completed_status
+        = database->GetCompletedReports(&completed_reports);
+    qDebug() << "Completed reports count:" << completed_reports.size();
+    qDebug() << "Completed status:" << completed_status;
+    
+    // Записываем completed отчеты в файл
+    if (debugFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
+        QTextStream stream(&debugFile);
+        stream << QDateTime::currentDateTime().toString() << " - Completed reports count: " << completed_reports.size() << "\n";
+        stream << QDateTime::currentDateTime().toString() << " - Completed status: " << completed_status << "\n";
+        debugFile.close();
+    }
+    
+    // Проверяем, есть ли pending отчеты или недавние completed отчеты
+    bool has_reports_to_show = false;
+    
+    if (status == crashpad::CrashReportDatabase::kNoError && !pending_reports.empty()) {
+        has_reports_to_show = true;
+        qDebug() << "Found pending reports to show";
+    } else if (completed_status == crashpad::CrashReportDatabase::kNoError && !completed_reports.empty()) {
+        // Проверяем, есть ли недавние completed отчеты (например, за последние 24 часа)
+        QDateTime now = QDateTime::currentDateTime();
+        for (const auto& report : completed_reports) {
+            // Проверяем, что отчет был создан недавно (в течение 24 часов)
+            QDateTime report_time = QDateTime::fromSecsSinceEpoch(report.creation_time);
+            if (report_time.secsTo(now) < 24 * 3600) { // 24 часа в секундах
+                has_reports_to_show = true;
+                qDebug() << "Found recent completed report from" << report_time.toString();
+                break;
+            }
+        }
+    }
+    
+    if (!has_reports_to_show) {
+        qDebug() << "No reports to show (no pending reports and no recent completed reports)";
         return;
     }
 
@@ -662,10 +779,58 @@ void ApplicationManager::Implementation::sendCrashInfo()
     //
     // Настраиваем соединения диалога
     //
+    auto reportsToSend = pending_reports;
+    reportsToSend.insert(reportsToSend.end(), completed_reports.begin(), completed_reports.end());
     connect(dialog, &Ui::CrashReportDialog::sendReportPressed, q,
-            [database = std::move(database), pending_reports, dialog] {
-                for (auto& report : pending_reports) {
-                    database->RequestUpload(report.uuid);
+            [database = std::move(database), reportsToSend, dialog] {
+                // Обновляем файл attachment.txt с информацией от пользователя
+#if 0
+                CrashpadPaths crashpadPaths;
+                QString attachmentPath = crashpadPaths.getAttachmentPath();
+                QFile attachmentFile(attachmentPath);
+                if (attachmentFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+                    QTextStream stream(&attachmentFile);
+                    stream << "\n=== USER ADDITIONAL INFORMATION ===\n";
+                    stream << "Frequency: " << dialog->frequency() << "\n";
+                    stream << "Crash Source: " << dialog->crashSource() << "\n";
+                    stream << "Crash Details: " << dialog->crashDetails() << "\n";
+                    stream << "Contact Email: " << dialog->contactEmail() << "\n";
+                    stream << "=== END USER INFORMATION ===\n\n";
+                    attachmentFile.close();
+                    qDebug() << "User information added to attachment file";
+                }
+#endif
+                // Отправляем отчеты
+                for (auto& report : reportsToSend) {
+                    const auto status = database->RequestUpload(report.uuid);
+                    if (status == crashpad::CrashReportDatabase::kNoError) {
+                        // Удаляем файл отчета после успешной отправки
+                        QString filePath = QString::fromStdWString(report.file_path.value());
+                        bool removed = QFile::remove(filePath);
+                        qDebug() << "Report file deleted:" << filePath << "Success:" << removed;
+                        
+                        // Удаляем файл attachment.txt после успешной отправки
+#if 0
+                        bool attachmentRemoved = QFile::remove(attachmentPath);
+                        qDebug() << "Attachment file deleted:" << attachmentPath << "Success:" << attachmentRemoved;
+#endif
+                        // Записываем в отладочный файл
+                        QFile debugFile("crashpad_debug.txt");
+                        if (debugFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
+                            QTextStream stream(&debugFile);
+                            stream << QDateTime::currentDateTime().toString() 
+                                   << " - Report file deleted: " << filePath 
+                                   << " Success: " << (removed ? "true" : "false") << "\n";
+#if 0
+                            stream << QDateTime::currentDateTime().toString() 
+                                   << " - Attachment file deleted: " << attachmentPath 
+                                   << " Success: " << (attachmentRemoved ? "true" : "false") << "\n";
+#endif
+                            debugFile.close();
+                        }
+                    } else {
+//                        qDebug() << "Failed to request upload for report:" << QString::fromStdWString(report.uuid.ToString());
+                    }
                 }
 
                 //

@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
     QString dbName = "starc-desktop";
     QString appName = "starcapp";
     QString appVersion = "0.8.0";
-    initializeCrashpad(dbName, appName, appVersion);
+    const auto ok = initializeCrashpad(dbName, appName, appVersion);
 
     //
     // Инициилизируем приложение
