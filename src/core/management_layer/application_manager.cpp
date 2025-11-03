@@ -96,6 +96,7 @@
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QTemporaryFile>
+#include <QFileInfo>
 #include <QTimer>
 #include <QTranslator>
 #include <QUuid>
@@ -104,6 +105,14 @@
 #include <QtConcurrentRun>
 
 #include <NetworkRequestLoader.h>
+
+// Qt Network for BugSplat POST upload
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QHttpMultiPart>
+#include <QHttpPart>
+#include <QEventLoop>
 
 namespace ManagementLayer {
 
@@ -800,36 +809,162 @@ void ApplicationManager::Implementation::sendCrashInfo()
                     qDebug() << "User information added to attachment file";
                 }
 #endif
-                // Отправляем отчеты
+                // Отправляем отчеты через POST на BugSplat согласно документации
                 for (auto& report : reportsToSend) {
-                    const auto status = database->RequestUpload(report.uuid);
-                    if (status == crashpad::CrashReportDatabase::kNoError) {
-                        // Удаляем файл отчета после успешной отправки
-                        QString filePath = QString::fromStdWString(report.file_path.value());
-                        bool removed = QFile::remove(filePath);
-                        qDebug() << "Report file deleted:" << filePath << "Success:" << removed;
-                        
-                        // Удаляем файл attachment.txt после успешной отправки
-#if 0
-                        bool attachmentRemoved = QFile::remove(attachmentPath);
-                        qDebug() << "Attachment file deleted:" << attachmentPath << "Success:" << attachmentRemoved;
+                    // Подготовим URL BugSplat
+                    const QString dbName = QStringLiteral("starc-desktop");
+                    QString product = QStringLiteral("starcapp");
+#if defined(Q_OS_MAC)
+                    product += "-mac";
+#elif defined(Q_OS_WINDOWS)
+                    product += "-win";
+#elif defined(Q_OS_LINUX)
+                    product += "-linux";
 #endif
+                    const QString version2 = QCoreApplication::applicationVersion();
+                    const QString version = "0.8.0";
+                    const QUrl url(QStringLiteral("https://%1.bugsplat.com/post/bp/crash/crashpad.php").arg(dbName));
+
+                    // Проверим наличие файла дампа
+                    if (report.file_path.empty()) {
+                        qWarning() << "Crash report has no file path; skipping";
+                        continue;
+                    }
+                    const QString dmpPath = QString::fromStdWString(report.file_path.value());
+                    QFile* dmpFile = new QFile(dmpPath);
+                    if (!dmpFile->exists()) {
+                        qWarning() << "Minidump file not found:" << dmpPath;
+                        delete dmpFile;
+                        continue;
+                    }
+
+                    // Сформируем multipart запрос
+                    QHttpMultiPart* multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+                    // upload_file_minidump
+                    QHttpPart dmpPart;
+                    dmpPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                                      QVariant(QStringLiteral("form-data; name=\"upload_file_minidump\"; filename=\"%1\"")
+                                                  .arg(QFileInfo(dmpPath).fileName())));
+                    dmpPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(QStringLiteral("application/octet-stream")));
+                    if (!dmpFile->open(QIODevice::ReadOnly)) {
+                        qWarning() << "Failed to open minidump for read:" << dmpPath;
+                        delete dmpFile;
+                        delete multiPart;
+                        continue;
+                    }
+                    dmpPart.setBodyDevice(dmpFile);
+                    multiPart->append(dmpPart);
+
+                    // product
+                    QHttpPart productPart;
+                    productPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"product\""));
+                    productPart.setBody(product.toUtf8());
+                    multiPart->append(productPart);
+
+                    // version
+                    QHttpPart versionPart;
+                    versionPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"version\""));
+                    versionPart.setBody(version.toUtf8());
+                    multiPart->append(versionPart);
+
+                    // key (опционально — оставим пустым)
+                    QHttpPart keyPart;
+                    keyPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"key\""));
+                    keyPart.setBody(QByteArray());
+                    multiPart->append(keyPart);
+
+                    // user (email из диалога)
+                    QHttpPart userPart;
+                    userPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"user\""));
+                    userPart.setBody(dialog->contactEmail().toUtf8());
+                    multiPart->append(userPart);
+
+                    // list_annotations (описание из диалога)
+                    QString annotationsText;
+                    if (!dialog->crashSource().isEmpty()) {
+                        annotationsText += QString("Source: %1\n").arg(dialog->crashSource());
+                    }
+                    if (!dialog->crashDetails().isEmpty()) {
+                        annotationsText += QString("Details: %1\n").arg(dialog->crashDetails());
+                    }
+                    if (!dialog->frequency().isEmpty()) {
+                        annotationsText += QString("Frequency: %1\n").arg(dialog->frequency());
+                    }
+                    QHttpPart listAnnotationsPart;
+                    listAnnotationsPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"list_annotations\""));
+                    listAnnotationsPart.setBody(annotationsText.toUtf8());
+                    multiPart->append(listAnnotationsPart);
+
+                    // Дополнительный attachment.txt, если существует (необязательно)
+                    CrashpadPaths crashpadPaths;
+                    const QString attachmentPath = crashpadPaths.getAttachmentPath();
+                    if (QFile::exists(attachmentPath)) {
+                        QFile* attachmentFile = new QFile(attachmentPath);
+                        if (attachmentFile->open(QIODevice::ReadOnly)) {
+                            QHttpPart attachmentPart;
+                            attachmentPart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                                                     QVariant(QStringLiteral("form-data; name=\"attachment.txt\"; filename=\"attachment.txt\"")));
+                            attachmentPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("text/plain"));
+                            attachmentPart.setBodyDevice(attachmentFile);
+                            multiPart->append(attachmentPart);
+                        } else {
+                            delete attachmentFile;
+                        }
+                    }
+
+                    // Выполним синхронный POST
+                    QNetworkAccessManager nam;
+                    QNetworkRequest request(url);
+                    request.setHeader(QNetworkRequest::UserAgentHeader, QCoreApplication::applicationName() + '/' + QCoreApplication::applicationVersion());
+                    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, true);
+
+                    QNetworkReply* reply = nam.post(request, multiPart);
+                    QEventLoop loop;
+                    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+                    QObject::connect(reply, static_cast<void (QNetworkReply::*)(const QList<QSslError>&)>(&QNetworkReply::sslErrors),
+                                     [&] (const QList<QSslError>& errs) {
+                                         for (const auto& e : errs) {
+                                             qWarning() << "SSL error:" << e.errorString();
+                                         }
+                                     });
+                    loop.exec();
+
+                    bool ok = false;
+                    int httpStatus = -1;
+                    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+                    if (statusCode.isValid()) {
+                        httpStatus = statusCode.toInt(&ok);
+                    }
+                    const QByteArray body = reply->readAll();
+                    const bool networkError = reply->error() != QNetworkReply::NoError;
+                    // Освободим ресурсы запроса и устройств, чтобы разблокировать файл дампа
+                    reply->deleteLater();
+                    dmpFile->close();
+                    delete dmpFile;
+                    dmpFile = nullptr;
+                    // attachmentFile мог быть создан внутри условия; закроется/останется жить вне нас,
+                    // так как мы не устанавливали родителя — Qt не удалит его сам. Попробуем закрыть,
+                    // если он ещё существует у multipart (не критично, так как файл не тот, что удаляем)
+                    delete multiPart; // гарантированно освобождает любые связи с устройствами
+
+                    if (!networkError && ok && httpStatus == 200) {
+                        // Удаляем файл отчета после успешной отправки
+                        QString filePath = dmpPath;
+                        bool removed = QFile::remove(filePath);
+                        qDebug() << "BugSplat upload success, HTTP 200. Report file deleted:" << filePath << "Success:" << removed;
+
                         // Записываем в отладочный файл
                         QFile debugFile("crashpad_debug.txt");
                         if (debugFile.open(QIODevice::WriteOnly | QIODevice::Append)) {
                             QTextStream stream(&debugFile);
-                            stream << QDateTime::currentDateTime().toString() 
-                                   << " - Report file deleted: " << filePath 
-                                   << " Success: " << (removed ? "true" : "false") << "\n";
-#if 0
-                            stream << QDateTime::currentDateTime().toString() 
-                                   << " - Attachment file deleted: " << attachmentPath 
-                                   << " Success: " << (attachmentRemoved ? "true" : "false") << "\n";
-#endif
+                            stream << QDateTime::currentDateTime().toString()
+                                   << " - BugSplat upload HTTP 200, response: " << QString::fromUtf8(body)
+                                   << "\n";
                             debugFile.close();
                         }
                     } else {
-//                        qDebug() << "Failed to request upload for report:" << QString::fromStdWString(report.uuid.ToString());
+                        qWarning() << "BugSplat upload failed" << httpStatus << (networkError ? "network error" : "server error") << reply->errorString() << body;
                     }
                 }
 
